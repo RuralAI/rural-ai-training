@@ -36,7 +36,7 @@ class HtmlScraper(BaseScraper):
             return None
 
     def _extract(self, resource: Resource, html: str) -> ScrapedContent:
-        soup = BeautifulSoup(html, "lxml")
+        soup = BeautifulSoup(html, "html.parser")
 
         # Remove noisy tags
         for tag in soup.find_all(_STRIP_TAGS):
