@@ -47,6 +47,18 @@ class DiscoveryAgent:
         "best free resources {topic}",
     ]
 
+    # Extra templates targeting GitHub specifically (hands-on content)
+    _GITHUB_TEMPLATES = [
+        "{topic} tutorial notebook",
+        "{topic} course exercises",
+        "awesome {topic}",
+        "{topic} hands-on examples",
+        "{topic} learning resources",
+        "{topic} workshop lab",
+        "{keyword} jupyter notebook tutorial",
+        "{keyword} project beginner",
+    ]
+
     def __init__(
         self,
         settings: Settings,
@@ -71,6 +83,20 @@ class DiscoveryAgent:
             # Add a couple of keyword-specific queries
             for kw in node.keywords[:3]:
                 queries.append(f"free {kw} tutorial course")
+        return queries
+
+    def _build_github_queries(self, domains: list[SkillDomain]) -> list[str]:
+        """Generate extra queries specifically for GitHub hands-on content."""
+        queries: list[str] = []
+        for node in TAXONOMY:
+            if node.domain not in domains:
+                continue
+            topic = node.display_name
+            for tmpl in self._GITHUB_TEMPLATES:
+                queries.append(tmpl.format(topic=topic, keyword=node.keywords[0]))
+            # Add more keyword-specific GitHub queries
+            for kw in node.keywords[:5]:
+                queries.append(f"{kw} tutorial notebook exercises")
         return queries
 
     async def _search_one(
@@ -99,12 +125,19 @@ class DiscoveryAgent:
         """
         target_domains = domains or [d for d in SkillDomain]
         queries = self._build_queries(target_domains)
-        report = DiscoveryReport(queries_executed=len(queries) * len(self._searchers))
+        github_queries = self._build_github_queries(target_domains)
+
+        # Find the GitHub searcher for targeted queries
+        github_searchers = [s for s in self._searchers if s.name == "github"]
+
+        total_tasks = len(queries) * len(self._searchers) + len(github_queries) * len(github_searchers)
+        report = DiscoveryReport(queries_executed=total_tasks)
 
         log.info(
-            "Starting discovery: %d queries × %d searchers",
+            "Starting discovery: %d general queries × %d searchers + %d GitHub-specific queries",
             len(queries),
             len(self._searchers),
+            len(github_queries),
         )
 
         # Fan out all queries concurrently (bounded by HttpClient semaphore)
@@ -113,6 +146,11 @@ class DiscoveryAgent:
             for query in queries
             for searcher in self._searchers
         ]
+        # Add GitHub-specific queries for hands-on content
+        for query in github_queries:
+            for searcher in github_searchers:
+                tasks.append(self._search_one(searcher, query, max_results_per_query))
+
         all_results_nested = await asyncio.gather(*tasks)
 
         # Flatten and deduplicate by URL

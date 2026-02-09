@@ -42,23 +42,30 @@ def _detect_provider(url: str, title: str) -> str:
     return ""
 
 
-def _detect_content_type(url: str, snippet: str) -> ContentType:
+def _detect_content_type(url: str, snippet: str, raw: dict | None = None) -> ContentType:
     """Heuristic content-type detection."""
     combined = (url + " " + snippet).lower()
-    if any(kw in combined for kw in ["course", "mooc", "syllabus", "lecture"]):
+    topics = raw.get("topics", []) if raw else []
+    topics_str = " ".join(topics).lower() if topics else ""
+    combined_all = combined + " " + topics_str
+
+    if any(kw in combined_all for kw in ["course", "mooc", "syllabus", "lecture", "curriculum", "workshop"]):
         return ContentType.COURSE
-    if any(kw in combined for kw in ["tutorial", "how to", "step by step", "guide"]):
+    if any(kw in combined_all for kw in ["notebook", "colab", "jupyter", "hands-on", "exercises", "lab"]):
+        return ContentType.INTERACTIVE_NOTEBOOK
+    if any(kw in combined_all for kw in ["tutorial", "how to", "step by step", "guide", "learn", "beginner"]):
         return ContentType.TUTORIAL
     if "arxiv" in combined or "paper" in combined:
         return ContentType.PAPER
-    if any(kw in combined for kw in ["video", "youtube", "watch"]):
+    if any(kw in combined_all for kw in ["video", "youtube", "watch"]):
         return ContentType.VIDEO_SERIES
-    if any(kw in combined for kw in ["book", "textbook", "ebook"]):
+    if any(kw in combined_all for kw in ["book", "textbook", "ebook"]):
         return ContentType.BOOK
-    if any(kw in combined for kw in ["notebook", "colab", "jupyter"]):
-        return ContentType.INTERACTIVE_NOTEBOOK
     if "documentation" in combined or "docs" in combined:
         return ContentType.DOCUMENTATION
+    # GitHub repos default to tutorial (hands-on) rather than paper
+    if "github.com" in combined:
+        return ContentType.TUTORIAL
     return ContentType.TUTORIAL
 
 
@@ -113,7 +120,7 @@ class ResourceEvaluator:
             score += min(best_kw, 0.25)
 
         # 3. Content type richness (courses and notebooks score higher)
-        ctype = _detect_content_type(result.url, result.snippet)
+        ctype = _detect_content_type(result.url, result.snippet, result.raw)
         richness = {
             ContentType.COURSE: 0.15,
             ContentType.INTERACTIVE_NOTEBOOK: 0.14,
