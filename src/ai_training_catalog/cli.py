@@ -343,6 +343,47 @@ async def _catalog_export(output: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# web — generate searchable HTML page
+# ---------------------------------------------------------------------------
+
+@main.command()
+@click.option("--output", default="catalog.html", help="Output HTML file path")
+def web(output: str) -> None:
+    """Generate a searchable HTML catalog you can open in your browser."""
+    asyncio.run(_web(output))
+
+
+async def _web(output: str) -> None:
+    from ai_training_catalog.discovery.catalog import ResourceCatalog
+    from ai_training_catalog.export_html import generate_html
+    from ai_training_catalog.models.curriculum import Curriculum
+    from ai_training_catalog.storage.json_store import JsonStore
+    from ai_training_catalog.storage.repository import CurriculumRepository, ResourceRepository
+
+    settings = _make_settings()
+    store = JsonStore(settings.catalog_path)
+    repo = ResourceRepository(store)
+    catalog_obj = ResourceCatalog(repo)
+
+    resources = await catalog_obj.get_all()
+    if not resources:
+        click.echo("Catalog is empty. Run 'ai-catalog discover' first.")
+        return
+
+    # Load the most recent curriculum if available
+    curriculum_repo = CurriculumRepository(settings.curricula_dir)
+    curriculum_ids = await curriculum_repo.list_all()
+    curriculum = None
+    if curriculum_ids:
+        curriculum = await curriculum_repo.load(curriculum_ids[-1])
+
+    out_path = Path(output)
+    generate_html(resources, curriculum, out_path)
+    click.echo(f"Searchable catalog generated: {out_path.resolve()}")
+    click.echo(f"Open it in your browser: file:///{out_path.resolve()}")
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
