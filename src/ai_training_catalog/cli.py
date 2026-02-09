@@ -384,6 +384,96 @@ async def _web(output: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# contextualize — rural contextualization of a learning path
+# ---------------------------------------------------------------------------
+
+@main.command()
+@click.option("--path-title", default=None, help="Partial title match for the learning path (default: ML Basics)")
+@click.option("--output", default="rural_course.html", help="Output HTML file path")
+@click.option("--json-output", default=None, help="Also write raw JSON to this path")
+def contextualize(path_title: str | None, output: str, json_output: str | None) -> None:
+    """Generate a rural-contextualized version of a learning path."""
+    asyncio.run(_contextualize(path_title, output, json_output))
+
+
+async def _contextualize(
+    path_title: str | None, output: str, json_output: str | None
+) -> None:
+    from ai_training_catalog.contextualization.engine import (
+        contextualize_path,
+        generate_rural_html,
+    )
+    from ai_training_catalog.discovery.catalog import ResourceCatalog
+    from ai_training_catalog.storage.json_store import JsonStore
+    from ai_training_catalog.storage.repository import CurriculumRepository, ResourceRepository
+
+    settings = _make_settings()
+
+    # Load resources
+    store = JsonStore(settings.catalog_path)
+    repo = ResourceRepository(store)
+    catalog_obj = ResourceCatalog(repo)
+    all_resources = await catalog_obj.get_all()
+    resource_map = {r.id: r for r in all_resources}
+
+    # Load the most recent curriculum
+    curriculum_repo = CurriculumRepository(settings.curricula_dir)
+    curriculum_ids = await curriculum_repo.list_all()
+    if not curriculum_ids:
+        click.echo("No curriculum found. Run 'ai-catalog generate' first.", err=True)
+        sys.exit(1)
+
+    curriculum = await curriculum_repo.load(curriculum_ids[-1])
+    if curriculum is None:
+        click.echo("Failed to load curriculum.", err=True)
+        sys.exit(1)
+
+    # Find matching learning path
+    search = (path_title or "ml basics").lower()
+    matched = None
+    for lp in curriculum.learning_paths:
+        if search in lp.title.lower():
+            matched = lp
+            break
+
+    if not matched:
+        click.echo(f"No learning path matching '{search}'. Available paths:", err=True)
+        for lp in curriculum.learning_paths:
+            click.echo(f"  - {lp.title}", err=True)
+        sys.exit(1)
+
+    click.echo(f"Contextualizing: {matched.title}")
+    click.echo(f"  {len(matched.modules)} modules, {matched.total_estimated_hours:.1f}h original")
+
+    # Run contextualization
+    result = contextualize_path(matched, resource_map)
+
+    # Write JSON if requested
+    if json_output:
+        json_path = Path(json_output)
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        json_path.write_text(json.dumps(result, indent=2, default=str), encoding="utf-8")
+        click.echo(f"  JSON written to: {json_path.resolve()}")
+
+    # Generate HTML
+    html_path = Path(output)
+    generate_rural_html(result, html_path)
+
+    click.echo(f"\n{'='*60}")
+    click.echo("Rural Contextualization Complete")
+    click.echo(f"{'='*60}")
+    click.echo(f"  Original:    {matched.title}")
+    click.echo(f"  Rural title: {result['title']}")
+    click.echo(f"  Modules:     {len(result['modules'])}")
+    click.echo(f"  Hours:       {result['total_estimated_hours']:.1f}h (includes rural exercises)")
+    click.echo(f"  Datasets:    {len(result.get('rural_datasets', []))}")
+    click.echo(f"  Projects:    {len(result.get('community_projects', []))}")
+    click.echo(f"  HTML output: {html_path.resolve()}")
+    click.echo(f"{'='*60}")
+    click.echo(f"\nOpen in your browser: file:///{html_path.resolve()}")
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
