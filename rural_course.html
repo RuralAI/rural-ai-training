@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ml Basics — Beginner — Rural Edition</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7f0; color: #2d3436; line-height: 1.7; }
+  .header { background: linear-gradient(135deg, #2d5016 0%, #4a7c2e 50%, #6ba33e 100%); color: white; padding: 2.5rem 2rem; text-align: center; }
+  .header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  .header p { opacity: 0.9; font-size: 1.1rem; max-width: 700px; margin: 0 auto; }
+  .meta { display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap; }
+  .meta-item { text-align: center; }
+  .meta-num { font-size: 1.8rem; font-weight: 700; color: #ffd93d; }
+  .meta-label { font-size: 0.85rem; opacity: 0.8; }
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .context-box { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border-left: 5px solid #4a7c2e; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .context-box h2 { color: #2d5016; margin-bottom: 0.75rem; font-size: 1.3rem; }
+  .context-box p { color: #555; }
+  .module { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .module h3 { color: #2d5016; border-bottom: 2px solid #e8f5e9; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  .module h4 { color: #4a7c2e; margin: 1rem 0 0.5rem; font-size: 1rem; }
+  .hours { float: right; background: #e8f5e9; color: #2d5016; padding: 0.2rem 0.8rem; border-radius: 15px; font-size: 0.85rem; }
+  .resource-item { padding: 0.75rem; margin-bottom: 0.5rem; background: #f8faf5; border-radius: 8px; }
+  .resource-item a { color: #2d5016; font-weight: 600; text-decoration: none; }
+  .resource-item a:hover { text-decoration: underline; }
+  .rural-note { font-size: 0.9rem; color: #666; margin-top: 0.3rem; font-style: italic; }
+  .use-case { padding: 1rem; margin-bottom: 1rem; background: #f0f7e8; border-radius: 8px; border-left: 3px solid #6ba33e; }
+  .use-case h4 { color: #2d5016; margin-bottom: 0.5rem; }
+  .comparison { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; flex-wrap: wrap; }
+  .urban { flex: 1; min-width: 200px; padding: 0.5rem; background: #fff3e0; border-radius: 6px; font-size: 0.9rem; }
+  .arrow { font-size: 1.5rem; color: #4a7c2e; }
+  .rural { flex: 1; min-width: 200px; padding: 0.5rem; background: #e8f5e9; border-radius: 6px; font-size: 0.9rem; }
+  .dataset { margin-top: 0.5rem; font-size: 0.9rem; color: #555; }
+  .exercise { margin-top: 0.75rem; padding: 0.75rem; background: white; border-radius: 6px; font-size: 0.9rem; border: 1px dashed #4a7c2e; }
+  .section-title { color: #2d5016; font-size: 1.4rem; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #4a7c2e; }
+  .dataset-list, .project-list { list-style: none; }
+  .dataset-list li, .project-list li { padding: 0.6rem 0.75rem; margin-bottom: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .dataset-list li::before { content: "\1F4CA "; }
+  .project-list li::before { content: "\1F6E0 "; }
+  .empty { color: #999; font-style: italic; }
+  .prereqs { background: #fff8e1; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; }
+  .prereqs h3 { color: #f57f17; margin-bottom: 0.5rem; }
+  .prereqs li { margin-left: 1.5rem; color: #555; }
+  @media (max-width: 768px) {
+    .comparison { flex-direction: column; }
+    .arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Ml Basics — Beginner — Rural Edition</h1>
+  <p>Machine Learning fundamentals applied to rural challenges — from predicting crop yields and optimizing irrigation to classifying livestock health and forecasting market prices for agricultural commodities.</p>
+  <div class="meta">
+    <div class="meta-item"><div class="meta-num">3</div><div class="meta-label">Modules</div></div>
+    <div class="meta-item"><div class="meta-num">11h</div><div class="meta-label">Estimated Hours</div></div>
+    <div class="meta-item"><div class="meta-num">Beginner</div><div class="meta-label">Difficulty</div></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="context-box">
+    <h2>Why This Matters for Rural Communities</h2>
+    <p>Rural communities face unique challenges: limited access to experts, vast land areas to monitor, weather-dependent livelihoods, and resource constraints. ML can amplify the impact of limited resources by automating analysis, enabling early warning systems, and providing data-driven decision support to farmers, rural health workers, and community planners.</p>
+  </div>
+
+  <div class="prereqs">
+    <h3>Prerequisites</h3>
+    <ul>
+      <li>Basic familiarity with rural/agricultural concepts (no AI experience needed)</li>
+    </ul>
+  </div>
+
+  <h2 class="section-title">Course Modules</h2>
+  
+        <div class="module">
+          <h3>Module 1: Module 1: Ml Basics <span class="hours">5.8h</span></h3>
+          <div class="resources-section">
+            <h4>Learning Resources</h4>
+            
+            <div class="resource-item">
+              <a href="https://github.com/josephmisiti/awesome-machine-learning" target="_blank">josephmisiti/awesome-machine-learning</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="https://github.com/Developer-Y/cs-video-courses" target="_blank">Developer-Y/cs-video-courses</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2210.17484v1" target="_blank">The Open MatSci ML Toolkit: A Flexible Framework for Machine Learning in Materials Science</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2006.16189v4" target="_blank">DOME: Recommendations for supervised machine learning validation in biology</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2201.12150v2" target="_blank">Learning Curves for Decision Making in Supervised Machine Learning: A Survey</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+          </div>
+          <div class="use-cases-section">
+            <h4>Rural Use Cases &amp; Exercises</h4>
+            
+            <div class="use-case">
+              <h4>Decision Trees</h4>
+              <div class="comparison">
+                <div class="urban"><strong>Typical example:</strong> Deciding whether to approve a bank loan</div>
+                <div class="arrow">&#10132;</div>
+                <div class="rural"><strong>Rural example:</strong> Deciding which crop to plant based on soil, season, market prices, and water availability</div>
+              </div>
+              <div class="dataset"><strong>Dataset:</strong> Regional crop profitability databases, weather station data</div>
+              <div class="exercise"><strong>Exercise:</strong> Create a decision tree that recommends which crop a farmer should plant in a given season based on soil type, expected rainfall, current market prices, and available irrigation. Visualize the tree and explain the decisions.</div>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <h3>Module 2: Module 2: Ml Basics <span class="hours">2.4h</span></h3>
+          <div class="resources-section">
+            <h4>Learning Resources</h4>
+            
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2110.00207v1" target="_blank">Contraction-Based Methods for Stable Identification and Robust Machine Learning: a Tutorial</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2304.02381v2" target="_blank">Physics-Inspired Interpretability Of Machine Learning Models</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/1906.01101v1" target="_blank">MEMe: An Accurate Maximum Entropy Method for Efficient Approximations in Large-Scale Machine Learning</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2306.04338v1" target="_blank">Changing Data Sources in the Age of Machine Learning for Official Statistics</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/1807.04970v1" target="_blank">Analysis Acoustic Features for Acoustic Scene Classification and Score fusion of multi-classification systems applied to DCASE 2016 challenge</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+          </div>
+          <div class="use-cases-section">
+            <h4>Rural Use Cases &amp; Exercises</h4>
+            
+            <div class="use-case">
+              <h4>Logistic Classification</h4>
+              <div class="comparison">
+                <div class="urban"><strong>Typical example:</strong> Classifying emails as spam or not spam</div>
+                <div class="arrow">&#10132;</div>
+                <div class="rural"><strong>Rural example:</strong> Classifying whether a cow is healthy or sick based on sensor readings</div>
+              </div>
+              <div class="dataset"><strong>Dataset:</strong> Livestock health monitoring datasets or FAO animal health records</div>
+              <div class="exercise"><strong>Exercise:</strong> Train a classifier that takes daily measurements (temperature, activity level, feed intake, milk production) and predicts whether a dairy cow needs veterinary attention. What accuracy can you achieve? What's the cost of a false negative?</div>
+            </div>
+            <div class="use-case">
+              <h4>Cross-Validation &amp; Model Evaluation</h4>
+              <div class="comparison">
+                <div class="urban"><strong>Typical example:</strong> Evaluating a model on held-out test data from an A/B test</div>
+                <div class="arrow">&#10132;</div>
+                <div class="rural"><strong>Rural example:</strong> Validating a yield prediction model across different growing seasons and regions</div>
+              </div>
+              <div class="dataset"><strong>Dataset:</strong> Multi-year crop data from multiple counties or districts</div>
+              <div class="exercise"><strong>Exercise:</strong> Take your crop yield model and evaluate it using k-fold cross-validation. Does it perform equally well across different years? Different regions? What does this tell you about the model's reliability for farmers?</div>
+            </div>
+            <div class="use-case">
+              <h4>Feature Engineering</h4>
+              <div class="comparison">
+                <div class="urban"><strong>Typical example:</strong> Creating features from user clickstream data</div>
+                <div class="arrow">&#10132;</div>
+                <div class="rural"><strong>Rural example:</strong> Creating features from raw weather station data for agricultural models</div>
+              </div>
+              <div class="dataset"><strong>Dataset:</strong> NOAA weather station data + USDA crop calendars</div>
+              <div class="exercise"><strong>Exercise:</strong> Starting with raw daily weather data (temperature, precipitation, wind), engineer useful features for a crop model: growing degree days, cumulative rainfall, frost risk indicators, drought indices. Which features improve prediction the most?</div>
+            </div>
+          </div>
+        </div>
+        <div class="module">
+          <h3>Module 3: Module 3: Ml Basics <span class="hours">0.5h</span></h3>
+          <div class="resources-section">
+            <h4>Learning Resources</h4>
+            
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2202.10169v2" target="_blank">Machine Learning Operations: A Survey on MLOps Tool Support</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/1702.07254v3" target="_blank">Sobolev Norm Learning Rates for Regularized Least-Squares Algorithm</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2402.01393v3" target="_blank">ALERT-Transformer: Bridging Asynchronous and Synchronous Machine Learning for Real-Time Event-based Spatio-Temporal Data</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2304.13037v3" target="_blank">VeML: An End-to-End Machine Learning Lifecycle for Large-scale and High-dimensional Data</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+            <div class="resource-item">
+              <a href="http://arxiv.org/abs/2309.07064v2" target="_blank">A Comprehensive Analysis of the Role of Artificial Intelligence and Machine Learning in Modern Digital Forensics and Incident Response</a>
+              <p class="rural-note">Apply the concepts from this resource to the rural use cases below.</p>
+            </div>
+          </div>
+          <div class="use-cases-section">
+            <h4>Rural Use Cases &amp; Exercises</h4>
+            
+            <div class="use-case">
+              <h4>Linear Regression</h4>
+              <div class="comparison">
+                <div class="urban"><strong>Typical example:</strong> Predicting house prices from square footage and location</div>
+                <div class="arrow">&#10132;</div>
+                <div class="rural"><strong>Rural example:</strong> Predicting crop yield from rainfall, soil pH, fertilizer amount, and planting date</div>
+              </div>
+              <div class="dataset"><strong>Dataset:</strong> USDA Crop Yield data or local agricultural extension records</div>
+              <div class="exercise"><strong>Exercise:</strong> Build a regression model that predicts corn yield per acre using weather data (rainfall, temperature, sunlight hours) and soil properties. Compare your model's predictions with actual yields from your county's agricultural data.</div>
+            </div>
+            <div class="use-case">
+              <h4>Logistic Classification</h4>
+              <div class="comparison">
+                <div class="urban"><strong>Typical example:</strong> Classifying emails as spam or not spam</div>
+                <div class="arrow">&#10132;</div>
+                <div class="rural"><strong>Rural example:</strong> Classifying whether a cow is healthy or sick based on sensor readings</div>
+              </div>
+              <div class="dataset"><strong>Dataset:</strong> Livestock health monitoring datasets or FAO animal health records</div>
+              <div class="exercise"><strong>Exercise:</strong> Train a classifier that takes daily measurements (temperature, activity level, feed intake, milk production) and predicts whether a dairy cow needs veterinary attention. What accuracy can you achieve? What's the cost of a false negative?</div>
+            </div>
+          </div>
+        </div>
+
+  <h2 class='section-title'>Rural Datasets</h2><ul class='dataset-list'><li>USDA National Agricultural Statistics Service (NASS) — free crop and livestock data</li><li>NOAA Climate Data Online — weather station records by county</li><li>USDA NRCS Web Soil Survey — soil properties for any US location</li><li>FAO STAT — global agriculture, food, and land use data</li><li>NASA POWER — solar and meteorological data for agriculture</li><li>Kaggle Agriculture datasets — crowd-sourced farm data</li><li>OpenAg / MIT Open Agriculture Initiative data</li><li>CHIRPS — rainfall estimates for data-sparse regions</li><li>Sentinel-2 satellite imagery — free crop monitoring from space</li></ul>
+
+  <h2 class='section-title'>Community Project Ideas</h2><ul class='project-list'><li>Build a crop recommendation app for local farmers based on their soil test results</li><li>Create a weather alert system that texts farmers when frost or drought conditions are predicted</li><li>Develop a simple pest identification tool using phone camera photos</li><li>Map soil quality across your county using public survey data and visualization tools</li><li>Analyze 10 years of local market prices to help farmers decide when to sell</li><li>Build a water usage optimizer for a community irrigation district</li></ul>
+</div>
+
+</body>
+</html>
