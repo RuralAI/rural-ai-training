@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rural AI Training — Free AI Education for Rural Communities</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f0 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+.container {
+    max-width: 800px;
+    width: 100%;
+}
+h1 {
+    font-size: 2.5rem;
+    color: #1a5d1a;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+.subtitle {
+    text-align: center;
+    color: #555;
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+}
+.cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+@media (max-width: 600px) {
+    .cards { grid-template-columns: 1fr; }
+    h1 { font-size: 1.8rem; }
+}
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: block;
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+.card h2 {
+    font-size: 1.3rem;
+    color: #1a5d1a;
+    margin-bottom: 0.5rem;
+}
+.card p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+.card .stats {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #eee;
+    font-size: 0.85rem;
+    color: #888;
+}
+.footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    color: #888;
+    font-size: 0.9rem;
+}
+.footer a {
+    color: #1a5d1a;
+    text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Rural AI Training</h1>
+    <p class="subtitle">Free and open-source AI education contextualized for rural communities</p>
+
+    <div class="cards">
+        <a href="catalog.html" class="card">
+            <div class="card-icon">&#128218;</div>
+            <h2>AI Resource Catalog</h2>
+            <p>Searchable catalog of 269+ free AI training resources from GitHub, arXiv, and across the web. Filter by domain, difficulty, and content type.</p>
+            <div class="stats">Tutorials, notebooks, courses, papers &amp; more</div>
+        </a>
+
+        <a href="rural_course.html" class="card">
+            <div class="card-icon">&#127793;</div>
+            <h2>ML Basics — Rural Edition</h2>
+            <p>Machine learning fundamentals adapted for rural contexts: crop yield prediction, livestock health monitoring, soil analysis, and community projects.</p>
+            <div class="stats">3 modules &bull; 10.7 hours &bull; 9 datasets &bull; 6 projects</div>
+        </a>
+    </div>
+
+    <div class="footer">
+        <p>Built by <a href="https://github.com/RuralAI">RuralAI</a> &mdash;
+        <a href="https://github.com/RuralAI/rural-ai-training">View source on GitHub</a></p>
+    </div>
+</div>
+</body>
+</html>
