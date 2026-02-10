@@ -1,6 +1,12 @@
 # AI Training Catalog
 
-An agent-based system that **discovers free and open-source AI training content** across the web, ingests and rationalises it, and **generates best-practices training curricula** covering both technical and business AI skills.
+An agent-based system that **discovers free and open-source AI training content** across the web, ingests and rationalises it, and **generates best-practices training curricula** covering both technical and business AI skills — contextualized for **rural communities**.
+
+## Live Pages
+
+- **[AI Resource Catalog](https://ruralai.github.io/rural-ai-training/catalog.html)** — Searchable catalog of 269+ free AI training resources
+- **[ML Basics — Rural Edition](https://ruralai.github.io/rural-ai-training/rural_course.html)** — Machine learning course adapted for rural contexts
+- **[Home Page](https://ruralai.github.io/rural-ai-training/)** — Landing page with links to all resources
 
 ## Architecture
 
