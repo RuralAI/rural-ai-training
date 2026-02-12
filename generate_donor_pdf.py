@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Generate a donor-facing PDF from Rural AI Training project materials."""
+"""Generate a donor-facing PDF for The Center for Rural AI (CRAI)."""
 
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.colors import Color, HexColor
-from reportlab.lib.units import mm, cm
+from reportlab.lib.colors import HexColor
+from reportlab.lib.units import mm
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak,
+    KeepTogether,
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
@@ -49,23 +50,29 @@ def _styles():
         ),
         "body": ParagraphStyle(
             "body", parent=ss["Normal"],
-            fontSize=11, leading=16, textColor=BLACK, spaceAfter=6,
+            fontSize=10.5, leading=15, textColor=BLACK, spaceAfter=6,
         ),
         "body_center": ParagraphStyle(
             "body_center", parent=ss["Normal"],
-            fontSize=11, leading=16, textColor=BLACK, spaceAfter=6,
+            fontSize=10.5, leading=15, textColor=BLACK, spaceAfter=6,
             alignment=TA_CENTER,
         ),
         "bullet": ParagraphStyle(
             "bullet", parent=ss["Normal"],
-            fontSize=11, leading=16, textColor=BLACK,
+            fontSize=10.5, leading=15, textColor=BLACK,
             leftIndent=18, bulletIndent=6, spaceAfter=3,
-            bulletFontName="Helvetica", bulletFontSize=11,
+            bulletFontName="Helvetica", bulletFontSize=10.5,
         ),
         "sub_heading": ParagraphStyle(
             "sub_heading", parent=ss["Heading2"],
             fontSize=13, leading=17, textColor=GREEN_DARK,
-            spaceBefore=12, spaceAfter=4,
+            spaceBefore=10, spaceAfter=4,
+        ),
+        "program_heading": ParagraphStyle(
+            "program_heading", parent=ss["Heading2"],
+            fontSize=12, leading=16, textColor=GREEN_DARK,
+            spaceBefore=8, spaceAfter=3,
+            fontName="Helvetica-Bold",
         ),
         "stat_val": ParagraphStyle(
             "stat_val", parent=ss["Normal"],
@@ -77,15 +84,6 @@ def _styles():
             fontSize=9, leading=11, textColor=GREY,
             alignment=TA_CENTER,
         ),
-        "domain_name": ParagraphStyle(
-            "domain_name", parent=ss["Normal"],
-            fontSize=10, leading=14, textColor=GREEN_DARK,
-            fontName="Helvetica-Bold",
-        ),
-        "domain_desc": ParagraphStyle(
-            "domain_desc", parent=ss["Normal"],
-            fontSize=10, leading=14, textColor=GREY,
-        ),
         "closing": ParagraphStyle(
             "closing", parent=ss["Normal"],
             fontSize=12, leading=17, textColor=GREEN_DARK,
@@ -96,10 +94,36 @@ def _styles():
             fontSize=12, leading=16, textColor=GREEN_DARK,
             alignment=TA_CENTER, fontName="Helvetica-Bold", spaceAfter=4,
         ),
-        "step_num": ParagraphStyle(
-            "step_num", parent=ss["Normal"],
-            fontSize=12, leading=16, textColor=ACCENT,
-            fontName="Helvetica-Bold",
+        "cite_heading": ParagraphStyle(
+            "cite_heading", parent=ss["Normal"],
+            fontSize=10, leading=14, textColor=GREEN_DARK,
+            fontName="Helvetica-Bold", spaceBefore=8, spaceAfter=2,
+        ),
+        "cite_body": ParagraphStyle(
+            "cite_body", parent=ss["Normal"],
+            fontSize=9, leading=13, textColor=GREY,
+            leftIndent=12, bulletIndent=4, spaceAfter=2,
+            bulletFontName="Helvetica", bulletFontSize=9,
+        ),
+        "review_heading": ParagraphStyle(
+            "review_heading", parent=ss["Heading2"],
+            fontSize=13, leading=17, textColor=GREEN_DARK,
+            spaceBefore=10, spaceAfter=4,
+        ),
+        "review_body": ParagraphStyle(
+            "review_body", parent=ss["Normal"],
+            fontSize=10, leading=14, textColor=BLACK, spaceAfter=4,
+        ),
+        "review_bullet": ParagraphStyle(
+            "review_bullet", parent=ss["Normal"],
+            fontSize=10, leading=14, textColor=BLACK,
+            leftIndent=18, bulletIndent=6, spaceAfter=3,
+            bulletFontName="Helvetica", bulletFontSize=10,
+        ),
+        "review_label": ParagraphStyle(
+            "review_label", parent=ss["Normal"],
+            fontSize=10, leading=14, textColor=GREY,
+            fontName="Helvetica-Oblique", spaceAfter=2,
         ),
     }
 
@@ -108,7 +132,7 @@ def _stat_table(stats, styles):
     """Build a stat-box row as a Table."""
     val_row = [Paragraph(v, styles["stat_val"]) for _, v in stats]
     lbl_row = [Paragraph(l, styles["stat_label"]) for l, _ in stats]
-    t = Table([val_row, lbl_row], colWidths=[42*mm]*len(stats))
+    t = Table([val_row, lbl_row], colWidths=[42 * mm] * len(stats))
     t.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), GREEN_LIGHT),
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
@@ -121,304 +145,316 @@ def _stat_table(stats, styles):
     return t
 
 
-def _domain_table(domains, styles):
-    """Build a two-column domain table."""
-    data = [
-        [Paragraph(n, styles["domain_name"]), Paragraph(d, styles["domain_desc"])]
-        for n, d in domains
-    ]
-    t = Table(data, colWidths=[55*mm, 110*mm])
-    t.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ("LINEBELOW", (0, 0), (-1, -2), 0.3, HexColor("#e0e0e0")),
-    ]))
-    return t
-
-
 def _cover_bg(canvas, doc):
     """Draw the green cover banner."""
     canvas.saveState()
     canvas.setFillColor(GREEN_DARK)
-    canvas.rect(0, HEIGHT - 110*mm, WIDTH, 110*mm, fill=True, stroke=False)
+    canvas.rect(0, HEIGHT - 110 * mm, WIDTH, 110 * mm, fill=True, stroke=False)
     canvas.restoreState()
 
 
 def _normal_page(canvas, doc):
     """Header/footer for non-cover pages."""
     canvas.saveState()
-    # Header line
     canvas.setStrokeColor(GREEN_LIGHT)
     canvas.setLineWidth(0.5)
-    canvas.line(20*mm, HEIGHT - 12*mm, WIDTH - 20*mm, HEIGHT - 12*mm)
+    canvas.line(20 * mm, HEIGHT - 12 * mm, WIDTH - 20 * mm, HEIGHT - 12 * mm)
     canvas.setFont("Helvetica-Oblique", 8)
     canvas.setFillColor(GREY)
-    canvas.drawRightString(WIDTH - 20*mm, HEIGHT - 10*mm,
-                           "Rural AI Training -- Donor Information")
-    # Footer
+    canvas.drawRightString(
+        WIDTH - 20 * mm, HEIGHT - 10 * mm,
+        "The Center for Rural AI \u2014 Philanthropic Partnership",
+    )
     canvas.setFont("Helvetica-Oblique", 8)
-    canvas.drawCentredString(WIDTH / 2, 10*mm, f"Page {doc.page}")
+    canvas.drawCentredString(WIDTH / 2, 10 * mm, f"Page {doc.page}")
     canvas.restoreState()
 
 
 def build_pdf(output_path="donor_materials.pdf"):
     doc = SimpleDocTemplate(
         output_path, pagesize=A4,
-        topMargin=20*mm, bottomMargin=20*mm,
-        leftMargin=20*mm, rightMargin=20*mm,
+        topMargin=20 * mm, bottomMargin=20 * mm,
+        leftMargin=20 * mm, rightMargin=20 * mm,
     )
     S = _styles()
     story = []
 
     # ── Page 1: Cover ────────────────────────────────────────────────────────
-    story.append(Spacer(1, 25*mm))
-    story.append(Paragraph("Rural AI Training", S["cover_title"]))
-    story.append(Spacer(1, 4*mm))
-    story.append(Paragraph("Free and Open-Source AI Education", S["cover_sub"]))
-    story.append(Paragraph("for Rural Communities", S["cover_sub"]))
-    story.append(Spacer(1, 8*mm))
-    story.append(Paragraph("Donor Information Package", S["cover_tag"]))
-    story.append(Spacer(1, 20*mm))
+    story.append(Spacer(1, 25 * mm))
+    story.append(Paragraph("The Center for Rural AI", S["cover_title"]))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        "Building Rural Capacity in the AI Economy", S["cover_sub"],
+    ))
+    story.append(Spacer(1, 8 * mm))
+    story.append(Paragraph("Philanthropic Partnership", S["cover_tag"]))
+    story.append(Spacer(1, 20 * mm))
 
-    stats = [("Resources", "269+"), ("Modules", "3"),
-             ("Hours", "10.7"), ("Datasets", "9")]
+    stats = [
+        ("Rural Americans", "60M+"),
+        ("Share of U.S. GDP", "10%+"),
+        ("Partnership Ask", "$5M"),
+        ("Timeline", "24 Mo"),
+    ]
     story.append(_stat_table(stats, S))
-    story.append(Spacer(1, 12*mm))
+    story.append(Spacer(1, 12 * mm))
 
     story.append(Paragraph(
-        "Rural AI Training is an open-source initiative that brings free, high-quality "
-        "artificial intelligence and machine learning education to rural communities "
-        "worldwide. Our platform bridges the digital divide by providing curated "
-        "learning resources, hands-on courses, and real-world projects contextualized "
-        "for agriculture, rural healthcare, and community development.",
+        "The Center for Rural AI (CRAI) is a newly formed 501(c)(3) nonprofit "
+        "focused on a structural economic disparity in the United States: the "
+        "lagging participation of rural communities in artificial intelligence.",
         S["body_center"],
     ))
-    story.append(Spacer(1, 10*mm))
-    story.append(Paragraph("github.com/RuralAI/rural-ai-training", S["link"]))
+    story.append(Spacer(1, 10 * mm))
+    story.append(Paragraph("ruralai.org", S["link"]))
     story.append(PageBreak())
 
-    # ── Page 2: The Challenge & Our Solution ─────────────────────────────────
-    story.append(Paragraph("The Challenge", S["section"]))
+    # ── Page 2: About CRAI ───────────────────────────────────────────────────
+    story.append(Paragraph("About CRAI", S["section"]))
     story.append(Paragraph(
-        "Rural communities face unique barriers to participating in the AI revolution:",
+        "Rural America comprises a significant portion of the nation\u2019s "
+        "population and economy, yet it has historically lagged in access to "
+        "digital infrastructure, tech jobs, and innovation networks. The rise "
+        "of AI has exacerbated these challenges.",
+        S["body"],
+    ))
+    story.append(Paragraph(
+        "Over 60 million citizens live in rural areas. Rural ecosystems "
+        "contribute over 10% of U.S. GDP but are underrepresented in "
+        "high-growth tech sectors compared with urban regions.",
+        S["body"],
+    ))
+    story.append(Paragraph(
+        "CRAI exists to shift this trajectory by building the institutional "
+        "capacity rural regions need to adopt, deploy, and influence AI "
+        "systems in ways that create economic opportunities and enhance "
+        "community outcomes. Global economic analyses project that AI and "
+        "related technologies will generate tens of trillions of dollars in "
+        "value across industries by 2030 \u2014 we want to enable rural "
+        "communities to capture their share.",
+        S["body"],
+    ))
+
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph("Founding Team", S["sub_heading"]))
+    story.append(Paragraph(
+        "<b>Andrew Aitken, Executive Director</b> \u2014 Has advised "
+        "institutions including the U.S. White House, Microsoft, and Capital "
+        "One, and has served on the boards of numerous technology foundations.",
+        S["body"],
+    ))
+    story.append(Paragraph(
+        "<b>Adam Markham, Technology Adviser</b> \u2014 Has directed AI "
+        "research and systems engineering in government and critical "
+        "infrastructure contexts.",
+        S["body"],
+    ))
+    story.append(Paragraph(
+        "<b>Marc Nager, Adviser</b> \u2014 Co-founded Startup Weekend and "
+        "led community programs at Techstars; partner at one of the only "
+        "VCs focused on rural ecosystems.",
+        S["body"],
+    ))
+
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph("Strategic Partnerships", S["sub_heading"]))
+    story.append(Paragraph(
+        "CRAI and the AI Institute at Fort Lewis College in Durango, "
+        "Colorado \u2014 a rural public institution advancing comprehensive "
+        "AI education and engagement \u2014 have initiated discussions on "
+        "collaborative pathways. This provides direct insight into the "
+        "opportunities and constraints rural institutions face. In parallel, "
+        "CRAI is engaging with frontier AI companies so that rural use cases "
+        "inform product design while the technology is still evolving.",
+        S["body"],
+    ))
+
+    story.append(PageBreak())
+
+    # ── Page 3: The Investment Thesis ─────────────────────────────────────────
+    story.append(Paragraph("The Investment Thesis", S["section"]))
+    story.append(Paragraph(
+        "Rural regions possess underutilized competitive advantages, "
+        "including lower operating costs, stronger long-term community "
+        "retention, and rich real-world data environments in agriculture, "
+        "healthcare, and logistics that are relevant to AI use cases. While "
+        "rural communities have these strengths, persistent training, "
+        "infrastructure, and digital adoption gaps curtail their ability to "
+        "participate at scale in the emerging AI economy.",
+        S["body"],
+    ))
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        "Federal Policy Alignment", S["sub_heading"],
+    ))
+    story.append(Paragraph(
+        "Federal policy is increasingly aligned with addressing regional "
+        "disparities. The CHIPS and Science Act and related place-based "
+        "programs authorized under it are designed to build technology "
+        "capacity and innovation ecosystems outside of traditional tech "
+        "centers. The Regional Technology and Innovation Hubs (Tech Hubs) "
+        "program, for example, directs up to ~$10 billion over five years "
+        "to support distributed technology innovation networks across the "
+        "U.S., with appropriated funding already underway. Such federal "
+        "initiatives provide structural support for innovation ecosystems "
+        "that include rural and underserved communities.",
+        S["body"],
+    ))
+
+    story.append(PageBreak())
+
+    # ── Pages 4-5: Our Programs ──────────────────────────────────────────────
+    story.append(Paragraph("Our Programs", S["section"]))
+
+    # AI 101
+    story.append(Paragraph(
+        "AI 101 \u2014 Artificial Intelligence for Rural Communities (Q1/26)",
+        S["program_heading"],
+    ))
+    story.append(Paragraph(
+        "A plain-language, hands-on half-day workshop designed for small "
+        "business owners, municipal staff, nonprofit leaders, farmers, and "
+        "anyone serving a rural community \u2014 no technical background "
+        "required. Participants leave with:",
         S["body"],
     ))
     for b in [
-        "Limited access to technology experts and mentors",
-        "Vast land areas requiring monitoring with minimal staff",
-        "Weather-dependent livelihoods that could benefit from predictive models",
-        "Resource constraints that make paid training programmes inaccessible",
-        "Existing AI education uses urban-centric examples (stock trading, ride-sharing) "
-        "that feel irrelevant to rural learners",
+        "A working understanding of what AI is and where it falls short",
+        "Hands-on practice using real tools on tasks they actually face",
+        "A personal 30-day action plan tailored to their specific context",
     ]:
         story.append(Paragraph(b, S["bullet"], bulletText="\u2022"))
 
-    story.append(Spacer(1, 6*mm))
-    story.append(Paragraph("Our Solution", S["section"]))
+    story.append(Spacer(1, 2 * mm))
+
+    # AI Ignition
     story.append(Paragraph(
-        "Rural AI Training provides a complete, free learning platform with two core components:",
+        "AI Ignition (Q2/26)", S["program_heading"],
+    ))
+    story.append(Paragraph(
+        "A capacity-building initiative for rural higher education "
+        "institutions and nonprofits. It begins with AI readiness "
+        "assessments to identify high-impact, low-risk opportunities, and "
+        "then advances to focused 90-day pilots that deliver measurable "
+        "outcomes in student engagement, operational performance, and "
+        "service delivery.",
         S["body"],
     ))
 
-    story.append(Paragraph("1. AI Resource Catalog", S["sub_heading"]))
+    # Rural AI Innovation & Training Lab
     story.append(Paragraph(
-        "A searchable catalog of 269+ free AI training resources aggregated from GitHub, "
-        "arXiv, and across the web. Learners can filter by domain (machine learning, NLP, "
-        "computer vision, and more), difficulty level, and content type (tutorials, "
-        "notebooks, courses, and papers).",
+        "Rural AI Innovation &amp; Training Lab (Q3/26)",
+        S["program_heading"],
+    ))
+    story.append(Paragraph(
+        "The first program of its kind in the United States \u2014 a "
+        "physical lab and structured training infrastructure hosted at the "
+        "Fort Lewis College Innovation Center. Each 90-day cohort trains "
+        "approximately 15 faculty, staff, and institutional leaders from "
+        "rural colleges, tribal institutions, and mission-aligned nonprofits "
+        "to serve as internal AI evangelists at their home organizations.",
+        S["body"],
+    ))
+    story.append(Paragraph(
+        "The program structure blends an intensive in-person launch week, "
+        "a remote applied-pilot phase, and an in-person capstone week to "
+        "finalize deployments, document outcomes, and produce repeatable "
+        "playbooks. Each cohort indirectly influences more than 5,000 "
+        "students annually through the institutional multiplier effect.",
+        S["body"],
+    ))
+    story.append(Paragraph(
+        "The Lab also convenes AI builders for time-bound, structured "
+        "field engagements that produce jointly published use cases and "
+        "generate rural deployment insights that directly inform model "
+        "development and tooling priorities.",
         S["body"],
     ))
 
-    story.append(Paragraph("2. ML Basics -- Rural Edition Course", S["sub_heading"]))
+    # Peer Council
     story.append(Paragraph(
-        "A structured, beginner-friendly machine learning course that teaches "
-        "fundamental concepts through rural-specific applications:",
+        "Peer Council (Q2/26)", S["program_heading"],
+    ))
+    story.append(Paragraph(
+        "A shared network and knowledge library where participating "
+        "institutions exchange tested use cases, tools, and insights from "
+        "deployments. This collective repository cultivates durable "
+        "institutional knowledge within the rural ecosystem.",
         S["body"],
     ))
-    for prefix, text in [
-        ("<b>Agriculture:</b> ", "Crop yield prediction"),
-        ("<b>Livestock:</b> ", "Livestock health monitoring and classification"),
-        ("<b>Land Management:</b> ", "Soil analysis and irrigation optimisation"),
-        ("<b>Economics:</b> ", "Market price forecasting for agricultural commodities"),
+
+    # AI in the Mountains Summit
+    story.append(Paragraph(
+        "AI in the Mountains Summit (Q4/26)", S["program_heading"],
+    ))
+    story.append(Paragraph(
+        "An annual convening hosted in rotating rural mountain towns, "
+        "bringing together AI researchers, policymakers, corporate "
+        "partners, and rural stakeholders to ensure rural perspectives "
+        "shape national and regional AI strategies.",
+        S["body"],
+    ))
+
+    # AI Fluency Platform
+    story.append(Paragraph(
+        "The AI Fluency Platform (Q2/26)", S["program_heading"],
+    ))
+    story.append(Paragraph(
+        "Role-specific AI education tailored to rural institutional "
+        "contexts. Built around an agentic content orchestration platform "
+        "that contextualizes learning for real operational environments, "
+        "this curriculum will generate usable intellectual property and "
+        "scalable implementation beyond pilot phases.",
+        S["body"],
+    ))
+
+    story.append(PageBreak())
+
+    # ── Page 6: Why Philanthropic Capital Matters + Our Invitation ────────────
+    story.append(Paragraph("Why Philanthropic Capital Matters", S["section"]))
+    story.append(Paragraph(
+        "Federal and corporate investment tends to follow demonstrated "
+        "results; it rarely initiates them. Early philanthropic capital is "
+        "essential to fund assessments, pilots, resources, technology "
+        "infrastructure, and baseline operating capacity that generate the "
+        "evidence of impact required to unlock scalable public and private "
+        "funding streams. Without this initial support, promising rural AI "
+        "adoption efforts may fail to reach the proof points needed to "
+        "secure continued investment.",
+        S["body"],
+    ))
+
+    story.append(Spacer(1, 6 * mm))
+    story.append(Paragraph("Our Invitation", S["section"]))
+    story.append(Paragraph(
+        "CRAI seeks <b>$5,000,000 in philanthropic partnership over "
+        "24 months</b> to launch core programs, demonstrate impact across "
+        "8\u201312 partner institutions, build foundational infrastructure, "
+        "and position for access to federal funding beginning in 2027.",
+        S["body"],
+    ))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph("This investment will support:", S["body"]))
+    for b in [
+        "AI Ignition pilots at 8\u201310 rural higher education institutions",
+        "Launch of the AI Innovation and Training Lab",
+        "Development and deployment of the AI Fluency agentic curriculum "
+        "platform",
+        "Launch of the 2026 AI in the Mountains Summit",
+        "Core operations and strategic partnerships",
     ]:
-        story.append(Paragraph(prefix + text, S["bullet"], bulletText="\u2022"))
+        story.append(Paragraph(b, S["bullet"], bulletText="\u2022"))
 
-    story.append(PageBreak())
+    story.append(Spacer(1, 8 * mm))
 
-    # ── Page 3: Curriculum Coverage ──────────────────────────────────────────
-    story.append(Paragraph("Curriculum Coverage", S["section"]))
-    story.append(Paragraph(
-        "Our platform covers 13 AI skill domains, ensuring learners get "
-        "comprehensive exposure to the field:",
-        S["body"],
-    ))
-    story.append(Spacer(1, 4*mm))
-
-    domains = [
-        ("Machine Learning Fundamentals", "Core ML concepts adapted for rural contexts"),
-        ("Deep Learning", "Neural networks, CNNs for image-based tasks"),
-        ("Natural Language Processing", "Text analysis for agricultural reports and extension services"),
-        ("Computer Vision", "Crop disease detection, livestock monitoring"),
-        ("MLOps &amp; Production ML", "Deploying models in low-resource environments"),
-        ("Generative AI", "LLMs and diffusion models for content generation"),
-        ("Reinforcement Learning", "Optimisation for irrigation and resource allocation"),
-        ("Data Engineering", "Building data pipelines from sensor and field data"),
-        ("AI Strategy", "Planning AI adoption for rural organisations"),
-        ("AI Ethics", "Responsible AI practices in community settings"),
-        ("AI Project Management", "Managing AI initiatives with limited resources"),
-        ("AI ROI", "Measuring return on investment for rural AI projects"),
-        ("AI Governance", "Compliance and governance frameworks"),
-    ]
-    story.append(_domain_table(domains, S))
-
-    story.append(PageBreak())
-
-    # ── Page 4: How It Works ─────────────────────────────────────────────────
-    story.append(Paragraph("How It Works", S["section"]))
-    story.append(Paragraph(
-        "The platform is built on an automated discovery and curation pipeline:",
-        S["body"],
-    ))
-    story.append(Spacer(1, 4*mm))
-
-    steps = [
-        ("Discovery",
-         "An automated agent searches GitHub, arXiv, and the web for free AI "
-         "training content across all 13 skill domains."),
-        ("Ingestion &amp; Analysis",
-         "Discovered resources are scraped, de-duplicated, quality-scored, "
-         "and categorised by domain, difficulty, and content type."),
-        ("Curriculum Generation",
-         "A structured curriculum is generated with learning paths, modules, "
-         "and estimated completion times."),
-        ("Rural Contextualisation",
-         "Each module includes rural-specific use cases, datasets, and exercises "
-         "that connect abstract AI concepts to real-world agricultural and "
-         "community challenges."),
-        ("Open Access",
-         "Everything is published as static HTML and open-source code -- no server "
-         "costs, no login required, works on any device with a web browser."),
-    ]
-    for i, (title, desc) in enumerate(steps, 1):
-        story.append(Paragraph(
-            f'<font color="{ACCENT.hexval()}">{i}.</font>  '
-            f'<font color="{GREEN_DARK.hexval()}"><b>{title}</b></font>',
-            S["body"],
-        ))
-        story.append(Paragraph(desc, S["body"]))
-        story.append(Spacer(1, 2*mm))
-
-    story.append(PageBreak())
-
-    # ── Page 5: Course at a Glance ───────────────────────────────────────────
-    story.append(Paragraph("Course at a Glance", S["section"]))
-    story.append(Paragraph("ML Basics -- Beginner -- Rural Edition", S["body"]))
-    story.append(Spacer(1, 4*mm))
-
-    course_stats = [("Modules", "3"), ("Hours", "10.7"),
-                    ("Datasets", "9"), ("Projects", "6")]
-    story.append(_stat_table(course_stats, S))
-    story.append(Spacer(1, 6*mm))
-
-    story.append(Paragraph(
-        "The course teaches machine learning fundamentals through three progressive "
-        "modules, each grounded in rural applications. Learners work with real datasets "
-        "and build projects that solve genuine community challenges.",
-        S["body"],
-    ))
-    story.append(Spacer(1, 4*mm))
-    story.append(Paragraph("Sample Rural Use Cases", S["sub_heading"]))
-
-    use_cases = [
-        ("Crop Yield Prediction",
-         "Instead of predicting stock prices, learners build models to predict "
-         "harvest yields based on weather, soil, and historical data."),
-        ("Livestock Health Classification",
-         "Image classification is taught through identifying healthy vs. diseased "
-         "livestock rather than classifying cats and dogs."),
-        ("Soil Analysis",
-         "Regression and clustering concepts are applied to soil nutrient data "
-         "to guide fertiliser decisions."),
-        ("Market Price Forecasting",
-         "Time series analysis is learned by forecasting commodity prices for "
-         "local agricultural products."),
-    ]
-    for title, desc in use_cases:
-        story.append(Paragraph(f"<b>{title}</b>", S["body"]))
-        story.append(Paragraph(desc, S["body"]))
-
-    story.append(PageBreak())
-
-    # ── Page 6: Why Support Us ───────────────────────────────────────────────
-    story.append(Paragraph("Why Support Rural AI Training?", S["section"]))
-
-    reasons = [
-        ("Bridge the Digital Divide",
-         "AI is transforming every industry, but rural communities risk being left "
-         "behind. Your support ensures that farmers, rural health workers, and "
-         "community planners gain the skills to participate in the AI economy."),
-        ("Measurable, Scalable Impact",
-         "As a fully open-source platform, every dollar goes further. Content "
-         "created once serves learners globally. Static HTML deployment means "
-         "near-zero hosting costs and offline access capability."),
-        ("Real-World Relevance",
-         "Unlike generic AI courses, our materials are specifically contextualised "
-         "for rural challenges. Learners don't just study theory -- they build "
-         "solutions for their own communities."),
-        ("Open Source &amp; Transparent",
-         "All code, content, and curriculum are open source on GitHub. Donors "
-         "can verify exactly how resources are used and what content is produced."),
-        ("Community-Driven Growth",
-         "The automated discovery pipeline continuously finds and curates new "
-         "free resources, ensuring the platform grows and stays current without "
-         "ongoing manual effort."),
-    ]
-    for title, desc in reasons:
-        story.append(Paragraph(f"<b>{title}</b>", S["sub_heading"]))
-        story.append(Paragraph(desc, S["body"]))
-
-    story.append(PageBreak())
-
-    # ── Page 7: How You Can Help ─────────────────────────────────────────────
-    story.append(Paragraph("How You Can Help", S["section"]))
-
-    help_items = [
-        ("Financial Support",
-         "Donations fund infrastructure, content development, community outreach, "
-         "and translation of materials into local languages. Even modest contributions "
-         "make a significant difference because our open-source model multiplies impact."),
-        ("In-Kind Contributions",
-         "We welcome subject matter experts who can review content, contribute "
-         "rural-specific datasets, or help translate materials. Cloud computing "
-         "credits and development tools also accelerate our work."),
-        ("Partnerships",
-         "We are seeking partnerships with agricultural organisations, rural development "
-         "agencies, educational institutions, and technology companies to extend our "
-         "reach and ensure our content addresses real community needs."),
-    ]
-    for title, desc in help_items:
-        story.append(Paragraph(f"<b>{title}</b>", S["sub_heading"]))
-        story.append(Paragraph(desc, S["body"]))
-
-    story.append(Spacer(1, 8*mm))
-    story.append(Paragraph("Get Involved", S["section"]))
-    story.append(Paragraph(
-        "<b>GitHub:</b>  github.com/RuralAI/rural-ai-training", S["body"],
-    ))
-    story.append(Paragraph(
-        "<b>Organisation:</b>  github.com/RuralAI", S["body"],
-    ))
-
-    story.append(Spacer(1, 12*mm))
-
-    # Closing box -- use a table with background
+    # Closing box
     closing_text = Paragraph(
-        "Together, we can ensure that the AI revolution reaches every community "
-        "-- not just those with access to expensive courses and urban tech hubs.",
+        "If this opportunity resonates, we welcome a conversation about "
+        "how your partnership can help ensure rural communities lead, "
+        "not follow, in the AI economy.",
         S["closing"],
     )
-    closing_table = Table([[closing_text]], colWidths=[150*mm])
+    closing_table = Table([[closing_text]], colWidths=[150 * mm])
     closing_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, -1), GREEN_LIGHT),
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
@@ -430,7 +466,136 @@ def build_pdf(output_path="donor_materials.pdf"):
     ]))
     story.append(closing_table)
 
-    # Build with cover page handler for first page, normal for rest
+    story.append(Spacer(1, 8 * mm))
+    story.append(Paragraph(
+        "<b>Andrew Aitken</b> \u2014 Executive Director, "
+        "The Center for Rural AI",
+        S["body_center"],
+    ))
+    story.append(Paragraph(
+        "andrew@ruralai.org  |  ruralai.org", S["link"],
+    ))
+
+    story.append(PageBreak())
+
+    # ── Page 7: Appendix — Source Citations ───────────────────────────────────
+    story.append(Paragraph(
+        "Appendix \u2014 Source Citations", S["section"],
+    ))
+
+    citations = [
+        ("Rural population and economic context", [
+            "USDA reports ~46 million rural residents (~14% of U.S. "
+            "population).",
+            "McKinsey estimates rural areas are about one-seventh of "
+            "population and ~10% of GDP.",
+        ]),
+        ("Digital and technological divide evidence", [
+            "Rural broadband and device ownership lag compared with urban "
+            "and suburban areas.",
+            "Digital divide in rural communities affects access to tech "
+            "resources and economic participation.",
+        ]),
+        ("Federal policy and innovation ecosystems", [
+            "CHIPS and Science Act authorized significant investment in "
+            "R&amp;D and regional innovation, incl. Tech Hubs.",
+            "Brookings and related research highlight rural opportunities "
+            "via CHIPS programs.",
+        ]),
+        ("Rural economic dynamics", [
+            "Structural employment and economic composition differences "
+            "between rural and urban areas persist.",
+            "Service and retail industries now dominate rural job growth; "
+            "traditional sectors remain relevant but not dominant.",
+        ]),
+    ]
+    for heading, items in citations:
+        story.append(Paragraph(heading, S["cite_heading"]))
+        for item in items:
+            story.append(Paragraph(
+                item, S["cite_body"], bulletText="\u2022",
+            ))
+
+    story.append(PageBreak())
+
+    # ── Page 8: Appendix — Independent Review (Gates Foundation) ─────────────
+    story.append(Paragraph(
+        "Appendix \u2014 Independent Grant Review", S["section"],
+    ))
+    story.append(Paragraph(
+        "<i>This document was independently reviewed through the lens of a "
+        "major philanthropic foundation grant evaluator. The feedback below "
+        "is included for transparency and to guide future conversations "
+        "with prospective partners.</i>",
+        S["review_body"],
+    ))
+
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph("Strengths Identified", S["review_heading"]))
+
+    strengths = [
+        ("<b>Federal Policy Alignment &amp; Sustainability Path</b> \u2014 "
+         "The connection to CHIPS Act funding, Tech Hubs, and federal "
+         "place-based initiatives suggests CRAI is building toward "
+         "programmatic sustainability rather than perpetual foundation "
+         "dependence."),
+        ("<b>Proof-Before-Scaling Methodology</b> \u2014 "
+         "The 90-day MVP approach with focused initial investments shows "
+         "fiscal discipline. CRAI is asking funders to support evidence "
+         "generation that unlocks larger capital \u2014 exactly what "
+         "early-stage philanthropic capital should do."),
+        ("<b>Anchor Institution Partnership</b> \u2014 "
+         "Fort Lewis College provides real operational grounding. This "
+         "is not theoretical \u2014 CRAI has a concrete partner where it "
+         "can test, learn, and iterate, which significantly de-risks "
+         "the model."),
+    ]
+    for s in strengths:
+        story.append(Paragraph(s, S["review_bullet"], bulletText="\u2022"))
+
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph("Concerns Raised", S["review_heading"]))
+
+    concerns = [
+        ("<b>Scale of Ask vs. Organizational Track Record</b> \u2014 "
+         "$5M over the initial period is substantial for a newly formed "
+         "501(c)(3) without demonstrated programmatic outcomes. Evaluators "
+         "typically want to see organizations prove their model at smaller "
+         "scale before this level of investment."),
+        ("<b>Measurable Outcomes</b> \u2014 "
+         "Specific, quantifiable success metrics and clear definitions of "
+         "impact will strengthen the case. Detailed targets for faculty "
+         "trained, AI implementations deployed, student outcomes improved, "
+         "and cost savings generated would add rigor."),
+    ]
+    for c in concerns:
+        story.append(Paragraph(c, S["review_bullet"], bulletText="\u2022"))
+
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph(
+        "Key Questions for Partner Conversations", S["review_heading"],
+    ))
+
+    questions = [
+        "What is CRAI\u2019s current organizational capacity, and what "
+        "operational infrastructure exists today?",
+        "Can CRAI provide a detailed budget breakdown showing program "
+        "delivery, platform development, and overhead ratios?",
+        "What specific, quantifiable success metrics will demonstrate "
+        "impact at the 18-month mark?",
+        "What is the 36-month sustainability model, and what revenue mix "
+        "sustains operations after the initial investment?",
+        "How is CRAI differentiated from existing rural development or "
+        "digital equity programs (USDA Rural Development, EDA, extension "
+        "services)?",
+    ]
+    for i, q in enumerate(questions, 1):
+        story.append(Paragraph(
+            f'<font color="{ACCENT.hexval()}">{i}.</font>  {q}',
+            S["review_body"],
+        ))
+
+    # ── Build ────────────────────────────────────────────────────────────────
     doc.build(
         story,
         onFirstPage=_cover_bg,
